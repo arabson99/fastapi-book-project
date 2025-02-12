@@ -17,12 +17,35 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Navigate to project directory
+            set -e  # Stop script on error
+
+            # Ensure the project directory exists
+            if [ ! -d "~/fastapi-book-project/.git" ]; then
+              mkdir -p ~/fastapi-book-project
+              git clone git@github.com:arabson99/fastapi-book-project.git ~/fastapi-book-project
+            fi
             cd ~/fastapi-book-project
-            
-            # Pull latest changes
-            git pull origin main
-            
-            # Rebuild containers
-            docker-compose down
-            docker-compose up -d --build
+
+            # Ensure it's a Git repo before pulling
+            if [ -d ".git" ]; then
+              git pull origin main
+            else
+              git clone git@github.com:arabson99/fastapi-book-project.git .
+            fi
+
+            # Check if Docker Compose is installed
+            if ! command -v docker-compose &> /dev/null && ! command -v docker compose &> /dev/null; then
+              echo "Installing Docker Compose..."
+              sudo apt update && sudo apt install docker-compose -y
+            fi
+
+            # Use the correct Docker Compose command
+            if command -v docker-compose &> /dev/null; then
+              DOCKER_COMPOSE_CMD="docker-compose"
+            else
+              DOCKER_COMPOSE_CMD="docker compose"
+            fi
+
+            # Restart Docker containers
+            sudo $DOCKER_COMPOSE_CMD down
+            sudo $DOCKER_COMPOSE_CMD up -d --build
