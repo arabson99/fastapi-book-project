@@ -7,47 +7,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Deploy via SSH
+      - uses: actions/checkout@v4
+      - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           script: |
-            set -e  # Stop script on error
-            
-            # Define project directory
-            PROJECT_DIR=~/fastapi-book-project
-
-            # Ensure the project directory exists and is a git repository
-            if [ ! -d "$PROJECT_DIR/.git" ]; then
-              echo "Cloning repository since the directory is missing or not a git repo..."
-              rm -rf "$PROJECT_DIR"
-              git clone git@github.com:arabson99/fastapi-book-project.git "$PROJECT_DIR"
-            fi
-
-            # Navigate to project directory
-            cd "$PROJECT_DIR"
-
-            # Pull latest changes
-            git pull origin main
-
-            # Check if Docker Compose is installed
-            if ! command -v docker-compose &> /dev/null && ! command -v docker compose &> /dev/null; then
-              echo "Installing Docker Compose..."
-              sudo apt update && sudo apt install docker-compose -y
-            fi
-
-            # Use correct Docker Compose command
-            if command -v docker-compose &> /dev/null; then
-              DOCKER_COMPOSE_CMD="docker-compose"
-            else
-              DOCKER_COMPOSE_CMD="docker compose"
-            fi
-
-            # Restart Docker containers
-            sudo $DOCKER_COMPOSE_CMD down
-            sudo $DOCKER_COMPOSE_CMD up -d --build
+            cd ~/fastapi-book-project &&
+            git pull &&
+            pkill -f uvicorn || true &&
+            nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > app.log 2>&1 &
