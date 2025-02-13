@@ -1,5 +1,7 @@
 # FastAPI Book Management API
 
+# minimal changes
+
 ## Overview
 
 This project is a RESTful API built with FastAPI for managing a book collection. It provides comprehensive CRUD (Create, Read, Update, Delete) operations for books with proper error handling, input validation, and documentation.
@@ -144,3 +146,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For support, please open an issue in the GitHub repository.
+Testing ci
+test CI
+test ci
+CI test
